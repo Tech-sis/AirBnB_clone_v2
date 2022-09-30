@@ -13,7 +13,7 @@ import os.path
 from fabric.api import env, put, run
 
 env.user = "ubuntu"
-env.hosts = ["34.75.10.160", "35.231.86.187"]
+env.hosts = ["3.214.215.106", "44.200.104.219"]
 
 
 def do_deploy(archive_path):
@@ -30,12 +30,6 @@ def do_deploy(archive_path):
         print("Uploading archive to /tmp/ failed")
         return False
 
-    # Delete the archive folder on the server
-    if run("rm -rf /data/web_static/releases/{}/".
-           format(folder)).failed is True:
-        print("Deleting folder with archive(if already exists) failed")
-        return False
-
     # Create a new archive folder
     if run("mkdir -p /data/web_static/releases/{}/".
            format(folder)).failed is True:
@@ -46,6 +40,23 @@ def do_deploy(archive_path):
     if run("tar -xzf /tmp/{} -C /data/web_static/releases/{}/".
            format(fullFile, folder)).failed is True:
         print("Uncompressing archive to failed")
+        return False
+
+    # Delete the archive folder on the server
+    if run("rm -rf /data/web_static/releases/{}/".
+           format(folder)).failed is True:
+        print("Deleting folder with archive(if already exists) failed")
+        return False
+
+    # Delete current folder being served (the symbolic link)
+    if run("rm -rf /data/web_static/current").failed is True:
+        print("Deleting 'current' folder failed")
+        return False
+
+    # Create new symbolic link on web server linked to new code version
+    if run("ln -s /data/web_static/releases/{}/ /data/web_static/current".
+           format(folder)).failed is True:
+        print("Creating new symbolic link to new code version failed")
         return False
 
     # Deletes latest archive from the server
@@ -66,17 +77,6 @@ def do_deploy(archive_path):
     if run("rm -rf /data/web_static/releases/{}/web_static".
            format(folder)).failed is True:
         print("Deleting web_static folder failed")
-        return False
-
-    # Delete current folder being served (the symbolic link)
-    if run("rm -rf /data/web_static/current").failed is True:
-        print("Deleting 'current' folder failed")
-        return False
-
-    # Create new symbolic link on web server linked to new code version
-    if run("ln -s /data/web_static/releases/{}/ /data/web_static/current".
-           format(folder)).failed is True:
-        print("Creating new symbolic link to new code version failed")
         return False
 
     print("New version deployed!")
