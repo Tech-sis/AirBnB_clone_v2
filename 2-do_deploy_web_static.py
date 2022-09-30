@@ -1,23 +1,5 @@
 #!/usr/bin/python3
 """
-Distributes archived pack to both web servers
-Usage:
-    fab -f 2-do_deploy_web_static.py do_deploy:
-    archive_path=versions/<file_name> -i my_ssh_private_key
-Example:
-    fab -f 2-do_deploy_web_static.py do_deploy:
-    archive_path=versions/web_static_20170315003959.tgz -i my_ssh_private_key
-"""
-
-import os.path
-from fabric.api import env, put, run
-
-env.user = "ubuntu"
-env.hosts = ["3.214.215.106", "44.200.104.219"]
-
-
-#!/usr/bin/python3
-"""
 Fabric script method:
     do_deploy: deploys archive to webservers
 Usage:
@@ -25,6 +7,8 @@ Usage:
     do_deploy:archive_path=versions/web_static_20170315003959.tgz
     -i my_ssh_private_key -u ubuntu
 """
+from fabric.api import env, put, run
+import os.path
 env.hosts = ["3.214.215.106", "44.200.104.219"]
 
 
@@ -48,5 +32,5 @@ def do_deploy(archive_path):
         run("rm -rf {}".format(symlink))
         run("ln -s {} {}".format(path_no_ext, symlink))
         return True
-    except:
+    except Exception:
         return False
